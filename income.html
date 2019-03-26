@@ -1,0 +1,287 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>绩效查询</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0;">
+    <link rel="stylesheet" href="./ydUI/ydui.rem.css">
+    <link rel="stylesheet" href="./ydUI/ydui.base.css">
+    <link rel="stylesheet" href="./css/reset.css">
+    <!-- 引入rem自适应类库 -->
+    <script src="./ydUI/ydui.flexible.js"></script>
+    <style>
+        #app{
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        [v-cloak] {
+            display: none;
+        }
+        .head{
+            width: 100%;
+            height: 2.1rem;
+        }
+        .select{
+            width: 100%;
+            height: 1.3rem;
+            box-sizing: border-box;
+            padding: 6px;
+            line-height: 1.3rem;
+            background-color: #eeeeee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mySelect{
+            height:0.8rem;
+            border:1px solid #cccccc;
+            line-height: 0.8rem;
+            width: 2rem;
+            font-size: 16px;
+            text-indent: 10px;
+            color: darkgrey;
+        }
+        .title{
+            width: 100%;
+            height: 0.8rem;
+            display: flex;
+            background-color: skyblue;
+        }
+        .item{
+            color: white;
+            flex:1;
+            height: 0.8rem;
+            font-size: 0.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .context{
+            overflow: scroll;
+            width: 100%;
+            height: calc(100% - 2.1rem);
+        }
+        .dataItem{
+            width: 100%;
+            height: 1rem;
+            display: flex;
+            border-bottom: 1px solid #cccccc;
+        }
+        .detail{
+            flex:1;
+            height: 1rem;
+            font-size: 0.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        select{
+            border:0;
+        }
+        .myDown{
+            width: 12px;
+            height: 12px;
+            border-right:  #cccccc solid 2px;
+            border-bottom:  #cccccc solid 2px;
+            transform: translateY(-50%) rotate(45deg);
+            position: absolute;
+            top:16px;
+            right: 8px;
+
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div class="head">
+        <div class="select">
+            <div style="position: relative">
+                <select v-model="selectYear" class="mySelect" >
+                    <option value="" disabled selected hidden >请选择年份</option>
+                    <option v-for="i in year" :value="i">{{i}}</option>
+                </select>
+                <div class="myDown"></div>
+            </div>
+            <div style="position: relative">
+                <select v-model="selectType" class="mySelect" style="width: 2.5rem;margin-left: 5px" id="mySelect" >
+                    <option value="" disabled selected hidden >请选择考核类型</option>
+                    <option v-for="i in type" :value="i">{{i}}</option>
+                </select>
+                <div class="myDown"></div>
+            </div>
+
+
+            <div   class="mySelect" style="width: 2.5rem;margin-left: 5px;border: 0;">{{selectPeriod}}</div>
+        </div>
+        <div class="title">
+           <span v-for="item in titleList" class="item">{{item}}</span>
+        </div>
+    </div>
+    <div class="context">
+        <div v-for="i in changeData" class="dataItem">
+            <span class="detail">{{i.finalMonth}}</span>
+            <span class="detail">{{i.kpilevel}}</span>
+            <span class="detail" v-if="i.kpitype=='40'"></span>
+            <span class="detail" v-else>{{i.kpicoefficient}}</span>
+            <span class="detail" v-if="i.kpitype=='40'"></span>
+            <span class="detail" v-else>{{i.kpifraction}}</span>
+            <span class="detail">{{i.percentage}}%</span>
+        </div>
+    </div>
+</div>
+<!-- 引入 Vue -->
+<script src="./js/vue2.5.js"></script>
+<!-- 引入组件库 -->
+<script src="./ydUI/ydui.rem.js"></script>
+<script src="js/jquery.js"></script>
+<script src="js/api.js"></script>
+<script>
+    (function ($) {
+        $.getUrlParam = function (name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return decodeURI(r[2]);  return null;
+        }
+    })(jQuery);
+    var token = $.getUrlParam("token");
+    console.log(token)
+    new Vue({
+        el: '#app',
+        data:function () {
+            return {
+                path:"http://appinter.sunwoda.com/oa/",
+                selectType:'直线制-月度',
+                selectYear:'',
+                selectPeriod:'月度考核',
+                year:[],
+                type:["直线制-月度","直线制-季度","直线制-年度","项目制"],
+//                period:["月度考核","季度考核","年度考核","项目考核"],
+                titleList:["月份","等级","系数","分数","占比"],
+                datas:[],
+                changeData:[],
+                token:'',
+                currentYear:''
+            }
+        },
+        mounted: function () {
+            this.getYearList();
+            this.getData(this.currentYear)
+
+        },
+        watch:{
+            selectType: function (newType, oldType) {
+                if(newType=='直线制-月度'){
+                    this.changeData=this.datas.filter(item=>item.kpitype=='10');
+                    this.selectPeriod='月度考核';
+                    if(this.changeData.length==0){
+                        this.$dialog.toast({
+                            mes: "无数据",
+                            timeout: 500
+                        });
+                    }
+                }else if(newType=='直线制-季度'){
+                    this.changeData=this.datas.filter(item=>item.kpitype=='30');
+                    this.selectPeriod='季度考核';
+                    if(this.changeData.length==0){
+                        this.$dialog.toast({
+                            mes: "无数据",
+                            timeout: 500
+                        });
+                    }
+                }else if(newType=='直线制-年度'){
+                    this.changeData=this.datas.filter(item=>item.kpitype=='40');
+                    this.selectPeriod='年度考核';
+                    if(this.changeData.length==0){
+                        this.$dialog.toast({
+                            mes: "无数据",
+                            timeout: 500
+                        });
+                    }
+                }else if(newType=='项目制'){
+                    this.changeData=this.datas.filter(item=>item.kpitype=='20');
+                    this.selectPeriod='';
+                    console.log(this.changeData);
+                    if(this.changeData.length==0){
+                        this.$dialog.toast({
+                            mes: "无数据",
+                            timeout: 500
+                        });
+                    }
+                }
+            },
+            selectYear: function (newType, oldType) {
+               if(oldType){
+                   console.log(this.selectType);
+                   this.selectType='直线制-月度';
+                   this.getData(newType)
+               }
+            }
+        },
+        methods: {
+            getData:function (year) {
+                var vm = this;
+                api(vm,"get","加载中","kpiQueryBySap.json",{token:token,year:year},function (res) {
+
+                    vm.$dialog.loading.close();
+                    if(res.dataInfo){
+                        vm.datas=res.dataInfo.listData.reverse();
+                        vm.dataHandler()
+                    }
+
+                });
+
+            },
+            getYearList(){
+                let vm = this;
+                var currentYear=new Date().getFullYear();
+                vm.currentYear=currentYear;
+                vm.selectYear=currentYear;
+                for(var i=currentYear;i>=2017;i--){
+                    vm.year.push(i)
+                }
+            },
+            dataHandler(){
+                let vm = this;
+                for(var i=0;i<vm.datas.length;i++){
+                    vm.datas[i].startMonth=vm.getMMonth( vm.datas[i].starttime);
+                    vm.datas[i].endMonth=vm.getMMonth( vm.datas[i].endtime);
+                    if(vm.datas[i].kpitype=='10'){
+                        vm.datas[i].finalMonth=vm.datas[i].startMonth
+                    }else if(vm.datas[i].kpitype=='20') {
+                        if (vm.datas[i].startMonth == vm.datas[i].endMonth){
+                            vm.datas[i].finalMonth = vm.datas[i].startMonth
+                        }
+                    }else{
+                        vm.datas[i].finalMonth=vm.datas[i].startMonth+' - '+vm.datas[i].endMonth
+                    }
+                }
+                    console.log(vm.datas);
+                this.changeData=this.datas.filter(item=>item.kpitype=='10');
+                if(vm.changeData.length==0){
+                    this.$dialog.toast({
+                        mes: "无数据",
+                        timeout: 500
+                    });
+                }
+            },
+            getMMonth:function (origin) {
+                console.log(origin);
+                var newOrigin=changeDate(origin);
+                    function changeDate(setDate){
+                        if(setDate.length == 8){
+                        valDate=setDate.substring(0, 4) + "/" + setDate.substring(4, 6) + "/" + setDate.substring(6, 8);
+                        return valDate;
+                    }else if(setDate.length == 6){
+                        valDate=setDate.substring(0, 4) + "/" + setDate.substring(4, 6);
+                        return valDate;
+                    }
+                    return valDate;
+                };
+                var saveDate = new Date(newOrigin);
+                return saveDate.getMonth()+1
+            }
+        }
+    })
+</script>
+</body>
+</html>

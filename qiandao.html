@@ -1,0 +1,596 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>签到</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0;">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./ydUI/ydui.rem.css">
+    <link rel="stylesheet" href="./ydUI/ydui.base.css">
+    <link rel="stylesheet" href="./css/reset.css">
+    <!-- 引入rem自适应类库 -->
+    <script src="./ydUI/ydui.flexible.js"></script>
+    <style>
+        #app{
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        #app .yd-input{
+            height: auto;
+        }
+        .selectdeType{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+        [v-cloak] {
+            display: none;
+        }
+        #app .yd-dialog-white-mask .yd-toast-content{
+            font-size: 0.32rem;
+        }
+        #app .yd-cell-left{
+           min-width: 1.8rem;
+        }
+        .signready{
+            box-sizing: border-box;
+            background-color: #fff;
+            margin-bottom: 0.2rem;
+            padding-top: 0.4rem;
+            padding-left: 0.4rem;
+            padding-bottom: 0.32rem;
+            padding-right: 0.32rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .signready>div{
+            text-align: center;
+        }
+        .signreadyTxt{
+            font-size: 0.4rem;
+            font-weight: 600;
+            color: #137fe4;
+            margin-bottom: 0.1rem;
+        }
+        .subtxt{
+            font-size: 0.28rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div  v-show="showpage == 'phone'">
+        <img src="imgages/logo.png" width="100%">
+        <div style="height: 0.25rem"></div>
+        <yd-cell-group>
+            <yd-cell-item>
+                <span slot="left">手机：</span>
+                <yd-input slot="right" v-model="phone" ref="phone" required regex="mobile" placeholder="请填写手机号码"></yd-input>
+            </yd-cell-item>
+        </yd-cell-group>
+        <yd-button-group>
+            <yd-button size="large" bgColor="#137fe4" color="#fff" @click.native="subphone">提交</yd-button>
+        </yd-button-group>
+    </div>
+
+    <div v-show="showpage == 'message'">
+        <yd-cell-group ref="from">
+            <yd-cell-item>
+                <span slot="left">手机：</span>
+                <yd-input slot="right" v-model="phone"  required regex="mobile" placeholder="请输入手机号码" disabled></yd-input>
+            </yd-cell-item>
+            <yd-cell-item>
+                <span slot="left">姓名：</span>
+                <yd-input slot="right" v-model="name"  placeholder="请输入姓名" required></yd-input>
+            </yd-cell-item>
+            <yd-cell-item>
+                <span slot="left">职位：</span>
+                <yd-input slot="right" v-model="job"  placeholder="请输入职位" required></yd-input>
+            </yd-cell-item>
+            <yd-cell-item>
+                <span slot="left">公司名称：</span>
+                <yd-input slot="right" v-model="department"  placeholder="请输入公司名" required></yd-input>
+            </yd-cell-item>
+            <yd-cell-item>
+                <span slot="left">所属行业：</span>
+                <yd-input slot="right" v-model="dename"  placeholder="请选择公司行业" required @click.native="selectTp"></yd-input>
+            </yd-cell-item>
+            <!--<yd-cell-item>-->
+                <!--<yd-button type="primary" slot="left" @click.native="showpage='phone'">上一步</yd-button>-->
+                <!--<yd-button type="primary"  slot="right" @click.native="submessage">签到</yd-button>-->
+            <!--</yd-cell-item>-->
+        </yd-cell-group>
+        <yd-button-group>
+            <yd-button size="large" bgColor="#137fe4" color="#fff" @click.native="submessage">签到</yd-button>
+        </yd-button-group>
+    </div>
+    <div class="selectdeType" v-show="selectdeType">
+        <yd-cell-group title="选择公司所属行业" >
+            <yd-cell-item type="radio" v-for="item in detypeList">
+                <span slot="left">{{item.cTypeName}}</span>
+                <input slot="right" type="radio" :value="item.cTypeId" v-model="detype"/>
+            </yd-cell-item>
+        </yd-cell-group>
+    </div>
+    <div v-show="showpage == 'timeline'">
+        <div class="signready">
+            <div>
+                <yd-icon name="shield"  color="#137fe4" size="1.1rem"></yd-icon>
+            </div>
+            <div class="signreadyTxt" >签到成功</div>
+            <div class="subtxt">
+                <p>为了让您尽快入场，请您签到以后将次页面</p>
+                <p>展示给签到工作人员确认，谢谢</p>
+            </div>
+        </div>
+        <yd-timeline v-if="timelinelist.length>0">
+            <yd-timeline-item v-for="item in timelinelist">
+                 <p style="margin-top: 10px;">{{item.scheduleTimeStr}} - {{item.scheduleEndTimeStr.split(' ')[1]}}</p>
+                 <p>{{item.scheduleExplain}}</p>
+            </yd-timeline-item>
+        </yd-timeline>
+
+        <yd-cell-group v-if="timelinelist.length==0">
+            <yd-cell-item >
+                <span slot="left">暂无议程安排</span>
+            </yd-cell-item>
+        </yd-cell-group>
+    </div>
+
+</div>
+<!-- 引入 Vue -->
+<script src="./js/vue2.5.js"></script>
+<!-- 引入组件库 -->
+<script src="./ydUI/ydui.rem.js"></script>
+<script src="js/jquery.js"></script>
+<script>
+
+  (function ($) {
+    $.getUrlParam = function (name) {
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+      var r = window.location.search.substr(1).match(reg);
+      if (r != null) return decodeURI(r[2]);  return null;
+    }
+  })(jQuery);
+  var meetid = $.getUrlParam("meetid");
+  new Vue({
+    el: '#app',
+    data:function () {
+      return {
+        showpage:"phone",
+        selectdeType:false,
+        phone: '',
+        name:"",
+        job:"",
+        department:"",
+        detype:"",
+        dename:"",
+        path:"http://appinter.sunwoda.com/common/",
+//        path:"http://172.30.128.32:8083/swdAPP/common/",
+        detypeList:[
+                          {
+          "cTypeId": 1,
+          "cTypeName": "计算机软件"
+        },
+                          {
+                            "cTypeId": 2,
+                            "cTypeName": "计算机硬件"
+                          },
+                          {
+                            "cTypeId": 3,
+                            "cTypeName": "计算机服务(系统、数据服务、维修)"
+                          },
+                          {
+                            "cTypeId": 4,
+                            "cTypeName": "通信/电信/网络设备"
+                          },
+                          {
+                            "cTypeId": 5,
+                            "cTypeName": "通信/电信运营、增值服务"
+                          },
+                          {
+                            "cTypeId": 6,
+                            "cTypeName": "互联网/电子商务"
+                          },
+                          {
+                            "cTypeId": 7,
+                            "cTypeName": "网络游戏"
+                          },
+                          {
+                            "cTypeId": 8,
+                            "cTypeName": "电子技术/半导体/集成电路"
+                          },
+                          {
+                            "cTypeId": 9,
+                            "cTypeName": "仪器仪表/工业自动化"
+                          },
+                          {
+                            "cTypeId": 10,
+                            "cTypeName": "会计/审计"
+                          },
+                          {
+                            "cTypeId": 11,
+                            "cTypeName": "金融/投资/证券"
+                          },
+                          {
+                            "cTypeId": 12,
+                            "cTypeName": "银行"
+                          },
+                          {
+                            "cTypeId": 13,
+                            "cTypeName": "保险"
+                          },
+                          {
+                            "cTypeId": 14,
+                            "cTypeName": "信托/担保/拍卖/典当"
+                          },
+                          {
+                            "cTypeId": 15,
+                            "cTypeName": "贸易/进出口"
+                          },
+                          {
+                            "cTypeId": 16,
+                            "cTypeName": "批发/零售"
+                          },
+                          {
+                            "cTypeId": 17,
+                            "cTypeName": "快速消费品(食品、饮料、化妆品)"
+                          },
+                          {
+                            "cTypeId": 18,
+                            "cTypeName": "服装/纺织/皮革"
+                          },
+                          {
+                            "cTypeId": 19,
+                            "cTypeName": "家具/家电/玩具/礼品"
+                          },
+                          {
+                            "cTypeId": 20,
+                            "cTypeName": "奢侈品/收藏品/工艺品/珠宝"
+                          },
+                          {
+                            "cTypeId": 21,
+                            "cTypeName": "办公用品及设备"
+                          },
+                          {
+                            "cTypeId": 22,
+                            "cTypeName": "机械/设备/重工"
+                          },
+                          {
+                            "cTypeId": 23,
+                            "cTypeName": "汽车及零配件"
+                          },
+                          {
+                            "cTypeId": 24,
+                            "cTypeName": "制药/生物工程"
+                          },
+                          {
+                            "cTypeId": 25,
+                            "cTypeName": "医疗/护理/卫生"
+                          },
+                          {
+                            "cTypeId": 26,
+                            "cTypeName": "医疗设备/器械"
+                          },
+                          {
+                            "cTypeId": 27,
+                            "cTypeName": "广告"
+                          },
+                          {
+                            "cTypeId": 28,
+                            "cTypeName": "公关/市场推广/会展"
+                          },
+                          {
+                            "cTypeId": 29,
+                            "cTypeName": "影视/媒体/艺术/文化传播"
+                          },
+                          {
+                            "cTypeId": 30,
+                            "cTypeName": "文字媒体/出版"
+                          },
+                          {
+                            "cTypeId": 31,
+                            "cTypeName": "印刷/包装/造纸"
+                          },
+                          {
+                            "cTypeId": 32,
+                            "cTypeName": "房地产"
+                          },
+                          {
+                            "cTypeId": 33,
+                            "cTypeName": "建筑/建材/工程"
+                          },
+                          {
+                            "cTypeId": 34,
+                            "cTypeName": "家居/室内设计/装潢"
+                          },
+                          {
+                            "cTypeId": 35,
+                            "cTypeName": "物业管理/商业中心"
+                          },
+                          {
+                            "cTypeId": 36,
+                            "cTypeName": "中介服务"
+                          },
+                          {
+                            "cTypeId": 37,
+                            "cTypeName": "租赁服务"
+                          },
+                          {
+                            "cTypeId": 38,
+                            "cTypeName": "专业服务(咨询、人力资源、财会)"
+                          },
+                          {
+                            "cTypeId": 39,
+                            "cTypeName": "外包服务"
+                          },
+                          {
+                            "cTypeId": 40,
+                            "cTypeName": "检测，认证"
+                          },
+                          {
+                            "cTypeId": 41,
+                            "cTypeName": "法律"
+                          },
+                          {
+                            "cTypeId": 42,
+                            "cTypeName": "教育/培训/院校"
+                          },
+                          {
+                            "cTypeId": 43,
+                            "cTypeName": "学术/科研"
+                          },
+                          {
+                            "cTypeId": 44,
+                            "cTypeName": "餐饮业"
+                          },
+                          {
+                            "cTypeId": 45,
+                            "cTypeName": "酒店/旅游"
+                          },
+                          {
+                            "cTypeId": 46,
+                            "cTypeName": "娱乐/休闲/体育"
+                          },
+                          {
+                            "cTypeId": 47,
+                            "cTypeName": "美容/保健"
+                          },
+                          {
+                            "cTypeId": 48,
+                            "cTypeName": "生活服务"
+                          },
+                          {
+                            "cTypeId": 49,
+                            "cTypeName": "交通/运输/物流"
+                          },
+                          {
+                            "cTypeId": 50,
+                            "cTypeName": "航天/航空"
+                          },
+                          {
+                            "cTypeId": 51,
+                            "cTypeName": "石油/化工/矿产/地质"
+                          },
+                          {
+                            "cTypeId": 52,
+                            "cTypeName": "采掘业/冶炼"
+                          },
+                          {
+                            "cTypeId": 53,
+                            "cTypeName": "电气/电力/水利"
+                          },
+                          {
+                            "cTypeId": 54,
+                            "cTypeName": "新能源"
+                          },
+                          {
+                            "cTypeId": 55,
+                            "cTypeName": "原材料和加工"
+                          },
+                          {
+                            "cTypeId": 56,
+                            "cTypeName": "政府/公共事业"
+                          },
+                          {
+                            "cTypeId": 57,
+                            "cTypeName": "非营利组织"
+                          },
+                          {
+                            "cTypeId": 58,
+                            "cTypeName": "环保"
+                          },
+                          {
+                            "cTypeId": 59,
+                            "cTypeName": "农/林/牧/渔"
+                          },
+                          {
+                            "cTypeId": 60,
+                            "cTypeName": "多元化业务集团公司"
+                          }
+        ],
+        personitem:{},
+        timelinelist:[],
+      }
+    },
+    mounted: function () {
+      this.getData();
+      this.gettimeline();
+      localStorage.setItem("readymess","false");
+       if(localStorage.getItem('readymess') == 'true'){
+           this.showpage = 'timeline'
+       }
+    },
+    watch:{
+      detype:function () {
+        this.selectdeType = false;
+        for(var i=0;i<this.detypeList.length;i++){
+          if(this.detype == this.detypeList[i].cTypeId ){
+            this.dename = this.detypeList[i].cTypeName;
+          }
+        }
+      }
+    },
+    methods: {
+      subphone:function() {
+        const input = this.$refs.phone;
+        console.log(input.valid);
+        if(input.valid == false){
+          this.$dialog.toast({
+            mes: input.errorMsg,
+            timeout: 1500
+          });
+        }
+        if(input.valid == true) {
+          this.getperbyPhone();
+          this.showpage ='message';
+          console.log(this.showpage );
+        }
+
+      },
+      submessage:function () {
+        if(!this.name){
+          this.$dialog.toast({
+            mes: "姓名不能为空",
+            timeout: 1500
+          });
+          return
+        }
+        if(!this.job){
+          this.$dialog.toast({
+            mes: "职位不能为空",
+            timeout: 1500
+          });
+          return
+        }
+        if(!this.department){
+          this.$dialog.toast({
+            mes: "公司不能为空",
+            timeout: 1500
+          });
+          return
+        }
+        if(!this.detype){
+          this.$dialog.toast({
+            mes: "公司行业不能为空",
+            timeout: 1500
+          });
+          return
+        }
+        var vm = this;
+        vm.$dialog.loading.open('签到中...');
+        $.ajax({
+          type:"get",
+          url:vm.path+"meeting/userStruck.json",
+          dataType:"json",
+          data:{
+            meetingId:meetid,
+            userTel:vm.phone,
+            userName:vm.name,
+            userJob:vm.job,
+            userCompanyName:vm.department,
+            companyType:vm.detype
+          },
+          success:function(data){
+            console.log(data);
+            vm.$dialog.loading.close();
+            vm.$dialog.toast({
+              mes: data.message,
+              timeout: 3000
+            });
+            vm.showpage="timeline";
+            localStorage.setItem("readymess","true")
+          },
+          error: function() {
+            vm.$dialog.loading.close();
+          }
+        });
+      },
+      selectTp:function () {
+        this.selectdeType = true
+      },
+//      根据电话获取用户信息
+      getperbyPhone:function () {
+        var vm = this;
+        $.ajax({
+          type:"get",
+          url:vm.path+"meeting/findMeetingUserByParam.json",
+          dataType:"json",
+          data:{
+            userTel:vm.phone,
+            meetingId:meetid
+          },
+          success:function(data){
+            console.log(data);
+            vm.personitem = data.dataInfo.listData[0];
+
+            if(vm.personitem){
+//              获取用户是否已经签到
+              if(vm.personitem.isStruck==1){
+                vm.$dialog.toast({
+                  mes: "您已经签过到了",
+                  timeout: 3000
+                });
+                vm.showpage="timeline";
+                return
+              }
+              vm.phone=vm.personitem.userTel;
+              vm.name=vm.personitem.userName;
+              if(!vm.personitem.userName){
+                vm.name=""
+              }
+              vm.job= vm.personitem.userJob;
+              if(!vm.personitem.userJob){
+                vm.job=""
+              }
+              vm.department=vm.personitem.userCompanyName;
+              if(!vm.personitem.userCompanyName){
+                vm.department=""
+              }
+              vm.detype=vm.personitem.companyType;
+              if(!vm.personitem.companyType){
+                vm.detype=""
+              }
+              vm.dename=vm.personitem.companyTypeStr;
+              if(!vm.personitem.companyTypeStr){
+                vm.dename=""
+              }
+            }
+
+          }});
+      },
+      getData:function () {
+        var vm = this;
+        $.ajax({
+          type:"get",
+          url:vm.path+"meeting/findMeetingCompanyType.json",
+          dataType:"json",
+          data:{},
+          success:function(data){
+            console.log(data);
+            vm.detypeList = data.dataInfo.listData;
+          }});
+      },
+      gettimeline:function () {
+        var vm = this;
+        $.ajax({
+          type:"get",
+          url:vm.path+"meeting/findMeetingInfo.json",
+          dataType:"json",
+          data:{meetingId:meetid},
+          success:function(data){
+            console.log(data);
+            if(data.dataInfo.listData[0]){
+              vm.timelinelist = data.dataInfo.listData[0].schedules;
+            }
+
+          }});
+      }
+    }
+  })
+</script>
+</body>
+</html>

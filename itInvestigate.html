@@ -1,0 +1,286 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>信息中心2018年满意度调查</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0;">
+    <link rel="stylesheet" href="./ydUI/ydui.rem.css">
+    <link rel="stylesheet" href="./ydUI/ydui.base.css">
+    <link rel="stylesheet" href="./css/reset.css">
+    <!-- 引入rem自适应类库 -->
+    <script src="./ydUI/ydui.flexible.js"></script>
+
+    <style>
+        #app{
+            overflow-x: hidden;
+            box-sizing: border-box;
+            background-color: white;
+            height: 100%;
+        }
+        [v-cloak] {
+            display: none;
+        }
+        .header{
+            min-height: 2.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin:0 0.3rem;
+            border-bottom: 0.02rem dashed #cccccc;
+
+        }
+        .title{
+            padding: 0.3rem 0;
+            padding-bottom: 0.1rem;
+            /*line-height:1.6rem;*/
+            /*line-height: 2.5rem;*/
+            text-align: center;
+            /*color: #FF525C;*/
+            font-size: 0.4rem;
+            font-weight: bold;
+        }
+        .tips{
+            font-size: 0.3rem;
+            color: #000;
+            text-indent: 0.4rem;
+            text-align: left;
+            margin-top: 0.2rem;
+            font-weight: normal;
+        }
+        .owner{
+            text-align: right;
+            font-size: 0.3rem;
+            margin-top: 0.2rem;
+            color: #000;
+            font-weight: normal;
+        }
+        .groupTitle{
+            font-size: 0.35rem;
+            font-weight: bold;
+            font-family: Arial;
+        }
+        .content{
+            padding: 0.3rem;
+            padding-bottom: 0;
+        }
+        .item{
+            margin-top: 0.1rem;
+            padding: 0.04rem 0 ;
+        }
+        .itemTitle{
+            font-size: 0.32rem;
+            font-family: Arial;
+        }
+        .myInput{
+            border: 1px solid #eeeeee;
+            padding: 0 0.2rem;
+
+        }
+        .itemSelectGroup{
+            padding: 0.2rem 0;
+        }
+        .singleRadio{
+            margin-bottom: 0.16rem;
+        }
+        .yd-radio{
+            display: block;
+        }
+        .submit{
+            width: 100%;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .myButton{
+            height:0.8rem;
+            width: 1.6rem;
+            font-size: 0.32rem
+        }
+
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div class="header">
+        <div class="title">
+            信息中心2018年满意度调查
+            <div class="tips">
+                信息中心正在对全司进行IT服务质量评估，目的是改进我司IT服务工作中的不足与缺漏，提升我司整体IT服务的质量与水平，恳请您参与。本次调查将对所有个人信息严格保密。谢谢您的参与！
+            </div>
+            <div class="owner">欣旺达信息中心</div>
+        </div>
+    </div>
+    <!--<div class="content">-->
+        <!--<div class="groupTitle">一. 个人信息</div>-->
+        <!--<div class="item" v-for="(item,index) in personInformation">-->
+            <!--<div class="itemTitle">-->
+                <!--<span style="color: red;">*</span>-->
+                <!--{{index+1}}. {{item.qContent}}-->
+            <!--</div>-->
+            <!--<div class="itemSelectGroup" >-->
+                <!--<div>-->
+                    <!--<yd-radio-group v-model="item.aContent" >-->
+                        <!--<yd-radio  v-for="i in item.qOption" :val="i" class="singleRadio">{{i}}</yd-radio>-->
+                    <!--</yd-radio-group>-->
+                <!--</div>-->
+            <!--</div>-->
+
+        <!--</div>-->
+    <!--</div>-->
+    <div class="content">
+        <!--<div class="groupTitle">二. 敬业度调查</div>-->
+        <div class="item" v-for="(item,index) in data">
+            <div class="itemTitle">
+                <span style="color: red;" v-if="item.qIsRequired">*</span>
+                {{index+1}}. {{item.qContent}}
+            </div>
+            <div class="myInput" v-if="item.qType==5">
+                <yd-textarea slot="right" placeholder="请输入您的意见或建议" maxlength="100" v-model="item.aContent"></yd-textarea>
+            </div>
+            <div class="itemSelectGroup" >
+                <div>
+                    <yd-radio-group v-model="item.aContent" >
+                        <yd-radio  v-for="i in item.qOption" :val="i" class="singleRadio">{{i}}</yd-radio>
+                    </yd-radio-group>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="submit">
+        <yd-button  type="primary" shape="circle" class="myButton" @click.native="mySubmit" :disabled="ifDisabled">提交</yd-button>
+    </div>
+
+</div>
+<!-- 引入 Vue -->
+<script src="./js/vue2.5.js"></script>
+<!-- 引入组件库 -->
+<script src="./ydUI/ydui.rem.js"></script>
+<script src="js/jquery.js"></script>
+<script src="js/api.js"></script>
+<script>
+//    (function ($) {
+//        $.getUrlParam = function (name) {
+//            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+//            var r = window.location.search.substr(1).match(reg);
+//            if (r != null) return decodeURI(r[2]);  return null;
+//        }
+//    })(jQuery);
+//    var token = $.getUrlParam("token");
+
+    new Vue({
+        el: '#app',
+        data:function () {
+            return {
+//                path:'http://172.30.128.37:8080/swdAPP/exam/',
+                path:'http://appinter.sunwoda.com/exam/',
+                radio2:'',
+                data:[],
+                userNo:'',
+                ifDisabled:false,
+                submitData:'{"list":[',
+            }
+        },
+        mounted: function () {
+            let vm=this;
+            console.log("bbb");
+//            let vm=this;
+            vm.getUserNo();
+            vm.getData()
+//            vm.$dialog.confirm({
+//                title: '温馨提示',
+//                mes: '本问卷调查已截止,谢谢您的参与！',
+//                opts: () => {
+//                }
+//            });
+        },
+        watch:{},
+        methods: {
+            getUserNo(){
+                console.log("11111111")
+                var vm = this;
+                api2(vm,"get","加载中","http://appinter.sunwoda.com/QYWX/getUserNoRedirect",{},function (res) {
+                  vm.userNo=res
+                    console.log(vm.userNo)
+                });
+                    },
+            getData:function () {
+                var vm = this;
+                api(vm,"get","加载中","getExam.json",{userNo:vm.userNo,eId:2},function (res) {
+                    if(res.statusCode==-10000){
+                        vm.ifDisabled=true;
+                        vm.$dialog.confirm({
+                            title: '温馨提示',
+                            mes: '您已经完成此次调查问卷,请勿重复填写',
+                            opts: () => {
+                            }
+                        });
+                        vm.data=res.dataInfo.listData;
+                        console.log(vm.data);
+                        vm.dataHandler(vm.data)
+                    }else
+                    if(res.statusCode==0){
+                        vm.data=res.dataInfo.listData;
+                        console.log(vm.data);
+                        vm.dataHandler(vm.data)
+                    }
+                });
+            },
+            dataHandler(b){
+                let vm = this;
+                for(var i=0;i<b.length;i++){
+                    if(b[i].qOption){
+                        b[i].qOption =  b[i].qOption.split(';')
+                    }
+                }
+
+            },
+            openConfrim() {
+                this.$dialog.confirm({
+                    title: '温馨提示',
+                    mes: '红色星号为必填项，请完成所有必填项再提交，谢谢！',
+                    opts: () => {
+                    }
+                });
+            },
+            mySubmit(){
+                let vm=this;
+                for(var i=0;i<vm.data.length;i++){
+                    if(!vm.data[i].aContent&&vm.data[i].qType==2){
+                        vm.openConfrim();
+                        return
+                    }else{
+                        vm.submitData=vm.submitData+'{"eId":'+vm.data[i].eId+',"qId":'+vm.data[i].qId+',"aContent":"'+vm.data[i].aContent+'"},'
+                    }
+                }
+                var a=vm.submitData.substr(0,vm.submitData.length-1);
+                a+=']}';
+                console.log(a);
+                console.log(vm.submitData);
+                api(vm,"post","加载中","postExam.json",{token:token,answer:a},function (res) {
+                    console.log(res);
+                    if(res.statusCode==0){
+                        vm.$dialog.confirm({
+                            title: '温馨提示',
+                            mes: '您已成功提交本问卷,谢谢您的参与！',
+                            opts: () => {
+                            }
+                        });
+                        vm.ifDisabled=true
+                    }else{
+                        vm.$dialog.confirm({
+                            title: '温馨提示',
+                            mes: '问卷提交失败,请重新提交问卷,谢谢配合！',
+                            opts: () => {
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    })
+</script>
+</body>
+</html>

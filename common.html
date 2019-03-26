@@ -1,0 +1,67 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>默认页面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0;">
+    <link rel="stylesheet" href="./ydUI/ydui.rem.css">
+    <link rel="stylesheet" href="./ydUI/ydui.base.css">
+    <link rel="stylesheet" href="./css/reset.css">
+    <!-- 引入rem自适应类库 -->
+    <script src="./ydUI/ydui.flexible.js"></script>
+    <style>
+        #app{
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        [v-cloak] {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+
+</div>
+<!-- 引入 Vue -->
+<script src="./js/vue2.5.js"></script>
+<!-- 引入组件库 -->
+<script src="./ydUI/ydui.rem.js"></script>
+<script src="js/jquery.js"></script>
+<script src="js/api.js"></script>
+<script>
+  (function ($) {
+    $.getUrlParam = function (name) {
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+      var r = window.location.search.substr(1).match(reg);
+      if (r != null) return decodeURI(r[2]);  return null;
+    }
+  })(jQuery);
+  var meetid = $.getUrlParam("meetid");
+  new Vue({
+    el: '#app',
+    data:function () {
+      return {
+        path:"http://appinter.sunwoda.com/common/"
+      }
+    },
+    mounted: function () {
+
+    },
+    watch:{
+
+    },
+    methods: {
+      getData:function () {
+        var vm = this;
+        api(vm,"get","加载中","meeting/findMeetingCompanyType.json",{},function () {
+            console.log(data);
+            vm.detypeList = data.dataInfo.listData;
+        });
+      }
+    }
+  })
+</script>
+</body>
+</html>

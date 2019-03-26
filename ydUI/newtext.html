@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div onclick="divC()" style="width: 50px;height: 50px;background-color: red">
+    <span onclick="spanC()" style="width: 50%;height:50%;background-color: white">啊啊</span>
+</div>
+</body>
+
+<script>
+    function divC() {
+        console.log("divc")
+    }
+    function spanC() {
+        console.log("spanc")
+        event.stopPropagation()
+    }
+</script>
+</html>

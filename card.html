@@ -1,0 +1,353 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>厂牌补办</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0;">
+    <link rel="stylesheet" href="./ydUI/ydui.rem.css">
+    <link rel="stylesheet" href="./ydUI/ydui.base.css">
+    <link rel="stylesheet" href="./css/reset.css">
+    <!-- 引入rem自适应类库 -->
+    <script src="./ydUI/ydui.flexible.js"></script>
+    <style>
+        #app{
+            overflow:hidden;
+            box-sizing: border-box;
+            width:100%;
+            height:100%;
+        }
+        [v-cloak] {
+            display: none;
+        }
+        .messagetitle{
+            height: 0.9rem;
+            line-height: 0.9rem;
+            background-color: rgba(245, 245, 245, 1);
+            color: rgba(107, 120, 138, 1);
+            font-size:0.26rem;
+            padding-left: 0.24rem;
+        }
+        .tip{
+            display: flex;
+            line-height: 0.3rem;
+            padding: 0.3rem 0.24rem;
+            background-color: #fff;
+            border-bottom: solid 1px #eee;
+            color: red;
+            font-size: 0.2rem;
+
+
+        }
+        .messitem{
+            display: flex;
+            line-height: 0.44rem;
+            padding: 0.3rem 0.24rem;
+            background-color: #fff;
+            border-bottom: solid 1px #eee;
+            color: rgba(39, 55, 77, 1);
+            font-size: 0.3rem;
+
+
+        }
+        .messitem>span:first-child{
+            width: 1.8rem;
+        }
+        .messitem>span:last-child{
+            flex: 1;
+        }
+        .more{
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .message select{
+            width: 100%;
+            border: none;
+        }
+        .imgs{
+            display: flex;
+            flex-wrap: wrap;
+            background-color: #fff;
+            padding-bottom: 0.5rem;
+        }
+        .imgs .imgItem{
+            position: relative;
+            overflow: hidden;
+            width: 30vw;
+            height: 30vw;
+            margin-left: 2vw;
+            margin-top: 0.3rem;
+            border: solid 1px #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+        }
+        .imgs  input {
+            position: absolute;
+            display: block;
+            font-size: 60px;
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            opacity: 0;
+        }
+        .imgItem  .deletimg{
+            position:absolute ;
+            top: 0;
+            right: 0;
+            line-height: 0.5rem;
+            /*box-shadow: 1px 1px 2px #555;*/
+            border-radius: 50%;
+            /*background-color: #aaa;*/
+        }
+
+
+        .messcontent{
+            width: 4.36rem;
+        }
+        .messcontent .messtitle{
+            line-height: 0.52rem;
+            color: rgba(78, 113, 162, 1);
+            font-size: 0.36rem;
+            text-align: center;
+            font-weight: 600;
+        }
+        .messcontent .messcenter{
+            margin-top: 0.16rem;
+            line-height: 0.4rem;
+            color: rgba(78, 113, 162, 1);
+            font-size: 0.28rem;
+            text-align: center;
+        }
+        .messcontent .messbut{
+            margin-top: 0.38rem;
+            height: 0.72rem;
+            border-radius: 0.48rem;
+            color: rgba(236, 132, 135, 1);
+            font-size: 0.28rem;
+            text-align: center;
+            border: 1px solid rgba(236, 132, 135, 1);
+            line-height: 0.72rem;
+        }
+        i{
+            margin-right: 0.2rem;
+            color: red;
+        }
+        #mycheck i{
+            color: rgb(76, 216, 100);
+        }
+        .footer{
+           position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        .yd-btn-block{
+            height: 1rem;
+            line-height: 1rem;
+        }
+        .addcomplain{
+            position: absolute;
+            top:0;
+            left: 0;
+            bottom: 0.8rem;
+            width: 100%;
+            height: calc(100% - 0.8rem);
+            overflow: scroll;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div class="addcomplain">
+        <div class="messagetitle">
+           补办人信息
+        </div>
+        <div class="message">
+            <div class="messitem"><span>工号</span><span><input placeholder="请输入工号" v-model="form.userNo" disabled/></span></div>
+            <div class="messitem"><span>姓名</span><span><input placeholder="请输入姓名" v-model="form.userName" disabled/></span></div>
+            <div class="messitem"><span>岗位</span><span><input placeholder="请输入岗位" v-model="form.job" disabled/></span></div>
+            <div class="messitem" ><span>一级部门</span><span><input placeholder="请输入一级部门" v-model="form.deptLevel1" disabled/></span></div>
+            <div class="messitem" ><span>所在区域</span><span><input placeholder="请输入所在区域" v-model="form.area" disabled/></span></div>
+            <div class="messitem"><span>联系方式</span><span><input placeholder="请输入联系电话" v-model="form.tel" @blur="checkTel"/></span></div>
+            <div class="messitem"><span><i>*</i>打卡楼层</span><span><input placeholder="请输入打卡楼层" v-model="form.cardFloor" /></span></div>
+            <div class="messitem"><span><i>*</i>补卡类型</span>
+                <span>
+                      <yd-checkbox-group v-model="cardFillType">
+                          <yd-checkbox val='1'  shape="circle">厂证</yd-checkbox>
+                          <yd-checkbox val='2' shape="circle">考勤卡</yd-checkbox>
+                      </yd-checkbox-group>
+
+                </span>
+            </div>
+            <div class="messitem"><span><i>*</i>取卡区域</span>
+                <span>
+                     <select v-model="getCardArea" style="color:	#a8a8a8">
+                       <option value="" disabled selected hidden >请选择取卡区域</option>
+                       <option v-for="i in receiveArea" :value="i">{{i}}</option>
+                     </select>
+                </span>
+            </div>
+            <div class="messitem"><span><i>*</i>补卡原因</span>
+                <yd-radio-group v-model="form.fillReason" id="mycheck">
+                    <yd-radio val="遗失"></yd-radio>
+                    <yd-radio val="损坏"></yd-radio>
+                    <yd-radio val="其它"></yd-radio>
+                </yd-radio-group>
+            </div>
+            <div class="messitem" v-if="form.fillReason=='其它'"><span><i>*</i> <input placeholder="请输入其它原因" v-model="fillReasonDetail" /></span></div>
+            <div class="tip" >本次收取工本费用  10元</div>
+
+    </div>
+    </div>
+    <!--<div style="clear:both"></div>-->
+    <div class="footer">
+        <yd-button size="large" bgcolor="#4F74A6" color="#fff" @click.native="userSubmit"  type="primary" >提交</yd-button>
+    </div>
+
+
+</div>
+
+</div>
+
+<!-- 引入 Vue -->
+<script src="./js/vue2.5.js"></script>
+<!-- 引入组件库 -->
+<script src="./ydUI/ydui.rem.js"></script>
+<script src="js/jquery.js"></script>
+<script src="js/api.js"></script>
+<script>
+    (function ($) {
+        $.getUrlParam = function (name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return decodeURI(r[2]);  return null;
+        }
+    })(jQuery);
+    var token = $.getUrlParam("token");
+    new Vue({
+        el: '#app',
+        data:function () {
+            return {
+                path:"http://172.16.202.156:8080/swdAPP/weixin/cardFill/",
+                form:{},
+                cardFillType:[],
+                cardFillTypeChange:'',
+                getCardArea:'',
+                fillReasonDetail:'',
+                receiveArea:['石龙仔', '光明', '裕永兴', '水田', '惠州', '松岗', '西丽', '塘尾', '蒲田'],
+            }
+        },
+        mounted: function () {
+            this.getData()
+
+        },
+        computed:{
+            canSub: function () {
+                   if (!this.form.cardFloor || this.cardFillType.length == 0 || !this.getCardArea || !this.form.fillReason||this.form.tel=='') {
+                       return true
+                   }
+               },
+        },
+
+        watch:{
+
+        },
+        methods: {
+            getData:function () {
+                var vm = this;
+                api(vm,"get","加载中","getUserInfo.json?token="+token,{},function (data) {
+                    console.log(data);
+                    vm.form=data.dataInfo.listData[0]
+                });
+            },
+            userSubmit:function(){
+                if(this.canSub){
+                    this.$dialog.confirm({
+                        title: '温馨提示',
+                        mes: '标红星项及联系方式为必填项 , 请填完再进行提交 ! 谢谢配合 !',
+                        opts:function () {}
+                    });
+                }else if(this.form.tel!=''&&this.form.cardFloor&&this.cardFillType.length!=0&&this.getCardArea&&this.form.fillReason=='其它'&&this.fillReasonDetail==''){
+                    this.$dialog.confirm({
+                        title: '温馨提示',
+                        mes: '补卡原因为其它选项时需填写其它理由 , 谢谢配合 !',
+                        opts:function () {
+
+                        }
+                    });
+                }else{
+                    var vm = this;
+                    if(this.form.fillReason=='遗失'){
+                        this.form.fillReason=1
+                    }else if(this.form.fillReason=='损坏'){
+                        this.form.fillReason=2
+                    }else{
+                        this.form.fillReason=3
+                    }
+                    if(this.fillReasonDetail==''){
+                        this.fillReasonDetail=' '
+                    }
+                    for(var i in this.cardFillType){
+                        this.cardFillTypeChange=this.cardFillTypeChange+this.cardFillType[i]+';'
+                    }
+                    this.cardFillTypeChange.substr(0, this.cardFillTypeChange.length-2);
+                    console.log(this.cardFillTypeChange)
+                    var url='addCardFill.json?userNo='+this.form.userNo
+                        +'&userName='+this.form.userName
+                        +'&job='+this.form.job
+                        +'&tel='+this.form.tel
+                        + '&leaderNo=' +this.form.leaderNo
+                        +'&leaderDeptLevel1=' +this.form.leaderDeptLevel1
+                        + '&leaderDeptLevel3=' +this.form.leaderDeptLevel3
+                        +'&area='+this.form.area
+                        +'&cardFillType='+this.cardFillType
+                        +'&cardFloor=' +this.form.cardFloor
+                        +'&getCardArea='+this.getCardArea
+                        +'&fillReason='+this.form.fillReason
+                        +'&fillReasonDetail='+this.fillReasonDetail;
+                    api(vm,"get","加载中",url,{},function (data) {
+                        console.log(data);
+                        if(data.message=='操作成功'){
+                            vm.form.cardFloor='';
+                            vm.cardFillType=[];
+                            vm.getCardArea='';
+                            vm.form.fillReason='';
+                            vm.cardFillTypeChange='';
+                            vm.fillReasonDetail='';
+                            vm.form.tel='';
+                            vm.$dialog.confirm({
+                                title: '温馨提示',
+                                mes: '您已成功提交厂牌补卡单',
+                                opts:function () {
+
+                                }
+                            });
+                        }
+
+
+                    });
+                }
+
+            },
+            checkTel:function(){
+                var vm=this;
+                var rex1=/^\d{6}$/;
+                var rex2=/^\d{11}$/;
+                if(!rex1.test(this.form.tel)&&!rex2.test(this.form.tel)){
+                    this.$dialog.confirm({
+                        title: '温馨提示',
+                        mes: '联系方式填写有误 , 短号6位数字 , 长号11位数字 。请重新填写 , 谢谢配合 !',
+                        opts: function () {
+                            vm.form.tel=''
+                        }
+                    });
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>

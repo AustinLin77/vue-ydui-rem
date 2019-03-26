@@ -1,0 +1,195 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>宿舍费用查询</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0;">
+    <link rel="stylesheet" href="./ydUI/ydui.rem.css">
+    <link rel="stylesheet" href="./ydUI/ydui.base.css">
+    <link rel="stylesheet" href="./css/reset.css">
+    <!-- 引入rem自适应类库 -->
+    <script src="./ydUI/ydui.flexible.js"></script>
+    <style>
+        #app{
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        [v-cloak] {
+            display: none;
+        }
+        .myItem{
+            height: 3.3rem;
+            margin-top: 0.3rem;
+            margin-right: 0.3rem;
+            margin-left: 0.3rem;
+            background-color: white;
+            border-radius: 0.3rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .myHead{
+            height: 1rem;
+            line-height: 1rem;
+            width: 100%;
+            font-weight: bold;
+            font-size: 16px;
+            padding-left: 0.6rem;
+        }
+        .myCon{
+            flex:1;
+            display: flex;
+            flex-direction: column;
+        }
+        .first{
+            flex:1;
+            width: 100%;
+            display: flex;
+        }
+        .second{
+            flex:1;
+            width: 100%;
+            display: flex;
+        }
+        .myTitle{
+            text-align: center;
+            font-size: 14px;
+            color: darkgrey;
+            flex:1;
+        }
+        .outer{
+            flex:1;
+            display: flex;
+            flex-direction: column;
+        }
+        .myValue{
+            text-align:center;
+            flex:1;
+            color: deepskyblue;
+            font-size: 14px;
+
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <yd-layout>
+        <yd-navbar :title=currentYear+'年' slot="navbar">
+           <yd-navbar-back-icon slot="left" @click.native="frontYear"></yd-navbar-back-icon>
+           <yd-navbar-next-icon slot="right" @click.native="nextYear"></yd-navbar-next-icon>
+        </yd-navbar>
+        <div>
+            <div  v-for="item in data" class="myItem">
+                <div class="myHead">{{item.FeeMonth}}</div>
+                <div class="myCon">
+                    <div class="first">
+                        <div class="outer">
+                            <div class="myTitle">开始日期</div>
+                            <div class="myValue">{{item.in_date}}</div>
+                        </div>
+                        <div class="outer">
+                            <div class="myTitle">结束日期</div>
+                            <div class="myValue">{{item.out_date}}</div>
+                        </div>
+                        <div class="outer">
+                            <div class="myTitle">个人扣水费</div>
+                            <div class="myValue">¥<span style="margin-left: 0.1rem">{{item.personwaterfee}}</span></div>
+                        </div>
+                    </div>
+                    <div class="second">
+                        <div class="outer">
+                            <div class="myTitle">个人扣电费</div>
+                            <div class="myValue">¥<span style="margin-left: 0.1rem">{{item.personelecfee}}</span></div>
+                        </div>
+                        <div class="outer">
+                            <div class="myTitle">个人住宿费</div>
+                            <div class="myValue">¥<span style="margin-left: 0.1rem">{{item.dormhire}}</span></div>
+                        </div>
+                        <div class="outer">
+                            <div class="myTitle">个人总扣费</div>
+                            <div class="myValue">¥<span style="margin-left: 0.1rem">{{item.TotalFee}}</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </yd-layout>
+
+</div>
+<!-- 引入 Vue -->
+<script src="./js/vue2.5.js"></script>
+<!-- 引入组件库 -->
+<script src="./ydUI/ydui.rem.js"></script>
+<script src="js/jquery.js"></script>
+<script src="js/api.js"></script>
+<script>
+  (function ($) {
+    $.getUrlParam = function (name) {
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+      var r = window.location.search.substr(1).match(reg);
+      if (r != null) return decodeURI(r[2]);  return null;
+    }
+  })(jQuery);
+  var token = $.getUrlParam("token");
+//var token='0576e6e470d9f0f40cad10e9b02a7017';
+  new Vue({
+    el: '#app',
+    data:function () {
+      return {
+          path:"http://appinter.sunwoda.com/common/",
+//          path:'http://172.30.128.37:8080/swdAPP/room/',
+          currentYear:'',
+          data:[]
+      }
+    },
+    mounted: function () {
+        console.log("aaa")
+        this.getCurrentYear();
+        this.getData(this.currentYear)
+
+    },
+    watch:{
+
+    },
+    methods: {
+        dataHandler(data){
+            for(var i=0;i<data.length;i++){
+                data[i].FeeMonth=data[i].FeeMonth.substr(0,4)+'年'+data[i].FeeMonth.substr(5,7)+'月'
+            }
+        },
+        getCurrentYear(){
+            this.currentYear=new Date().getFullYear().toString();
+        },
+        frontYear(){
+            var frontYear=parseInt(this.currentYear);
+            frontYear--;
+            this.currentYear=frontYear.toString();
+            this.data=[];
+            this.getData()
+        },
+        nextYear(){
+            var frontYear=parseInt(this.currentYear);
+            frontYear++;
+            this.currentYear=frontYear.toString();
+            this.data=[];
+            this.getData()
+        },
+        getData:function () {
+        var vm = this;
+        api(vm,"get","加载中","getRoomFee.json",{token:token,year:vm.currentYear},function (data) {
+            console.log(data);
+            vm.data=data.dataInfo.listData;
+            if(vm.data.length==0) {
+                vm.$dialog.toast({
+                    mes: '当前条件下暂无数据',
+                    timeout: 1500
+                });
+            }
+            vm.dataHandler(vm.data)
+        });
+      }
+
+    }
+  })
+</script>
+</body>
+</html>

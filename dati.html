@@ -1,0 +1,366 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>答题</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0;">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./ydUI/ydui.rem.css">
+    <link rel="stylesheet" href="./ydUI/ydui.base.css">
+    <link rel="stylesheet" href="./css/reset.css">
+    <link rel="stylesheet" href="icon/iconfont.css">
+    <!-- 引入rem自适应类库 -->
+    <script src="./ydUI/ydui.flexible.js"></script>
+    <style>
+        #app{
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        #app .yd-input{
+            height: auto;
+        }
+
+        [v-cloak] {
+            display: none;
+        }
+        .questionTitle{
+            background-color: #fff;
+            font-size: 0.32rem;
+            padding-left: 0.2rem;
+            padding-right: 0.1rem;
+            padding-top: 0.2rem;
+            padding-bottom: 0.2rem;
+            border-bottom: solid 1px #eee;
+            color: #000;
+        }
+       #app .yd-cell-left{
+           white-space: normal;
+       }
+        .radios{
+            background-color: #0bb20c;
+            padding: 2px;
+            color: #ffffff;
+        }
+        .checkboxs{
+            background-color: #d74747;
+            padding: 2px;
+            color: #fff;
+        }
+
+        .message{
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0,0,0,.5);
+
+        }
+        .content{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .top_icon{
+            z-index: 999;
+        }
+        .top_icon .iconcontent{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 1.3rem;
+            height: 1.3rem;
+            border-radius: 50%;
+            border: solid 2px #fff;
+            background-color: #EC8487;
+
+        }
+        .center{
+            position: relative;
+            top: -0.65rem;
+            background-color: #fff;
+            padding-top: 0.89rem;
+            z-index: 1;
+            width: 85vw;
+            min-height: 200px;
+            border-radius: 10px;
+            padding-bottom: 0.24rem;
+            display: flex;
+            justify-content: center;
+        }
+        .centerMess{
+            margin-top: 0.4rem;
+            text-align: center;
+            font-size: 0.36rem;
+        }
+        .messbut{
+            margin-top: 0.22rem;
+            height: 0.72rem;
+            border-radius: 0.48rem;
+            color: rgba(236, 132, 135, 1);
+            font-size: 0.28rem;
+            text-align: center;
+            border: 1px solid rgba(236, 132, 135, 1);
+            line-height: 0.72rem;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <div  v-show="showpage == 'phone'">
+        <img src="imgages/top.png" width="100%">
+        <div style="height: 0.25rem"></div>
+        <yd-cell-group>
+            <yd-cell-item>
+                <span slot="left">工号：</span>
+                <yd-input slot="right" v-model="pNo" required type="number" placeholder="请填写工号"></yd-input>
+            </yd-cell-item>
+        </yd-cell-group>
+        <yd-button-group>
+            <yd-button size="large" bgColor="#137fe4" color="#fff" @click.native="subpNo">提交</yd-button>
+        </yd-button-group>
+    </div>
+
+    <div v-show="showpage == 'message'">
+        <yd-cell-group ref="from">
+            <yd-cell-item>
+                <span slot="left">工号：</span>
+                <yd-input slot="right" v-model="pNo"  required regex="mobile" placeholder="请输入手机号码" disabled></yd-input>
+            </yd-cell-item>
+            <yd-cell-item>
+                <span slot="left">姓名：</span>
+                <yd-input slot="right" v-model="name"  placeholder="请输入姓名" required></yd-input>
+            </yd-cell-item>
+            <yd-cell-item>
+                <span slot="left">职位：</span>
+                <yd-input slot="right" v-model="department"  placeholder="请输入部门" required></yd-input>
+            </yd-cell-item>
+
+        </yd-cell-group>
+        <yd-button-group>
+            <yd-button size="large" bgColor="#137fe4" color="#fff" @click.native="submessage">开始答题</yd-button>
+        </yd-button-group>
+    </div>
+
+    <div  v-show="showpage == 'dati'">
+        <div v-for="(i,n) in questions" >
+            <p class="questionTitle">
+                <span class="radios" v-if="i.testType == 'R'">单</span>
+                <span class="checkboxs" v-if="i.testType == 'O'">多</span>
+                {{n+1}}.{{i.message}}
+            </p>
+            <yd-cell-group >
+                <yd-cell-item type="radio" v-for="item in i.list" :style="asdisable==true?'background-color:#eee':''">
+                    <span slot="left">{{item.rType}}.{{item.message}}</span>
+                    <input slot="right" :type="i.testType == 'R'?'radio':'checkbox'" color="red" :value="item.rType" v-model="i.result" :disabled="asdisable"/>
+                </yd-cell-item>
+                <yd-cell-item v-show="asdisable">
+                    <span slot="left">答案揭晓：
+                        <span v-if="i.answer=='right'"><i class="iconfont icon-dui" style="color: #0bb20c;font-size: 0.32rem;padding: 0 10px"></i></span>
+                        <span v-if="i.answer=='wrong'"><i class="iconfont icon-cuohao" style="color: #d74747;font-size: 0.32rem;padding: 0 10px"></i></span>
+                        正确答案：{{i.sAnswer}}
+                    </span>
+                    <span slot="right">
+
+                    </span>
+                </yd-cell-item>
+            </yd-cell-group>
+
+        </div>
+        <yd-button-group>
+            <yd-button size="large" bgColor="#137fe4" color="#fff" @click.native="sub" :disabled="asdisable">提交</yd-button>
+        </yd-button-group>
+        <div style="height: 20px"></div>
+    </div>
+
+    <div class="message" v-show="messshow">
+        <div class="content">
+            <div class="top_icon">
+                <div class="iconcontent">
+                    <i class="iconfont icon-dui"  style="font-size:0.6rem;color: #fff"></i>
+                </div>
+            </div>
+            <div class="center" >
+                <div class="centerMess">
+                    <p>无疑 您已经作答完毕</p>
+                    <p>您的分数为 {{scose}} 分</p>
+                    <div class="messbut" @click="messshow=false">我知道了</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<!-- 引入 Vue -->
+<script src="./js/vue2.5.js"></script>
+<!-- 引入组件库 -->
+<script src="./ydUI/ydui.rem.js"></script>
+<script src="js/jquery.js"></script>
+<script>
+
+  (function ($) {
+    $.getUrlParam = function (name) {
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+      var r = window.location.search.substr(1).match(reg);
+      if (r != null) return decodeURI(r[2]);  return null;
+    }
+  })(jQuery);
+  var meetid = $.getUrlParam("meetid");
+  new Vue({
+    el: '#app',
+    data:function () {
+      return {
+        showpage:"phone",// phone -->首页验证   message -->个人信息   dati-->答题页面
+        pNo:'',
+        name:"",
+        scose:"",//分数
+        department:"",//部门
+        messshow:false, //成绩显示
+        path:"http://appinter.sunwoda.com/common/",
+        asdisable:false,//选择禁用
+        questions:[],
+
+      }
+    },
+    mounted: function () {
+
+    },
+    methods: {
+      subpNo:function() {
+        this.showpage = 'message'
+      },
+      submessage:function () {
+//        if(!this.name){
+//          this.$dialog.toast({
+//            mes: "姓名不能为空",
+//            timeout: 1500
+//          });
+//          return
+//        }
+//        if(!this.job){
+//          this.$dialog.toast({
+//            mes: "职位不能为空",
+//            timeout: 1500
+//          });
+//          return
+//        }
+        var vm = this;
+        vm.$dialog.loading.open('题目生成中...');
+        $.ajax({
+          type:"get",
+          url:vm.path+"safetyExam/login.json",
+          dataType:"json",
+          data:{
+            userNo:170711129,
+            groupId:20171115
+          },
+          success:function(data){
+            console.log(data);
+            vm.$dialog.loading.close();
+            vm.questions = data.dataInfo.listData;
+            vm.questions.map(function (item) {
+                 item.result = []
+            })
+            vm.showpage="dati";
+
+          },
+          error: function() {
+            vm.$dialog.loading.close();
+          }
+        });
+      },
+      sub:function(){
+        var vm =this;
+        vm.disable=true;
+        vm.scose=0;
+        for (var i = 0 ;i<vm.questions.length;i++){
+          if(vm.questions[i].result.length == 0){
+            vm.$dialog.toast({
+              mes: '第 '+(i+1)+' 题还未作答',
+              timeout: 1500
+            });
+            return
+          }
+          var res = vm.questions[i].result;
+          if(typeof (vm.questions[i].result) == "string"){
+            res = new Array(vm.questions[i].result);
+          }
+          console.log("------------------------");
+          console.log(new Array(vm.questions[i].sAnswer).sort().join(';'));
+          console.log(res.sort().join(';'));
+
+          if(new Array(vm.questions[i].sAnswer).sort().join(';') == res.sort().join(';')){
+            vm.scose+=10;
+            vm.questions[i].answer="right"
+          }else {
+            vm.questions[i].answer="wrong"
+          }
+        }
+        vm.asdisable = true;
+        console.log(vm.scose);
+        vm.messshow = true;
+        console.log($("#app .yd-cell-radio-icon:after"))
+
+        $("#app .yd-cell-radio-icon:after").css("color","red");
+//                $.ajax({
+//                    type:"get",
+//                    url:"http://appinter.sunwoda.com/common/safetyExam/submit.json",
+//                    dataType:"json",
+//                    data: {userNo:vm.pNumber,groupId:20171115,userName: vm.userName,department: vm.deptName,score:vm.scose},
+//                    success:function(data){
+//                       if(data.statusCode==0){
+//                           vm.$message("数据提交成功")
+//                       }
+//                    },
+//                    error:function (data) {
+//                        vm.$message("数据提交有误，请重新考试")
+//                    }
+//                })
+      },
+
+
+//      根据电话获取用户信息
+
+//      getData:function () {
+//        var vm = this;
+//        $.ajax({
+//          type:"get",
+//          url:"http://appinter.sunwoda.com/common/safetyExam/login.json",
+//          dataType:"json",
+//          data: {userNo:170711129,groupId:20171115},
+//          success:function(data){
+//            console.log(data);
+//
+//          },
+//          error:function (data) {
+//          }
+//        })
+//      },
+      gettimeline:function () {
+        var vm = this;
+        $.ajax({
+          type:"get",
+          url:vm.path+"meeting/findMeetingInfo.json",
+          dataType:"json",
+          data:{meetingId:meetid},
+          success:function(data){
+            console.log(data);
+            if(data.dataInfo.listData[0]){
+              vm.timelinelist = data.dataInfo.listData[0].schedules;
+            }
+
+          }});
+      }
+    }
+  })
+</script>
+</body>
+</html>
